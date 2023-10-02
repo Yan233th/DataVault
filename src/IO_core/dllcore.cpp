@@ -6,101 +6,59 @@
 #include <iostream>
 #include <fstream>
 #include <string>
-#include <cstdlib>
 
-#include "cryptopp/aes.h"
-#include "cryptopp/modes.h"
-#include "cryptopp/filters.h"
+#include "cryptlib.h"
+#include "sha.h"
+#include "filters.h"
+#include "hex.h"
+#include "aes.h"
+#include "modes.h"
+#include "osrng.h"
+
+#pragma comment(lib, "Crypto++/lib/Release/cryptlib.lib")
 
 using namespace std;
+using namespace CryptoPP;
 
-// 读取加密文件中的数据
-string readEncryptedFile(const string& filename) {
-    string encryptedData;
+void EncryptAndWriteToFile(const string& key, const string& file_path, const string& content)
+{
+    // Step 1: Generate SHA512 from the provided key
+    SHA512 sha;
+    CryptoPP::byte shaKey[SHA512::DIGESTSIZE];
+    sha.Update(reinterpret_cast<const CryptoPP::byte*>(key.data()), key.size());
+    sha.Final(shaKey);
 
-    // 打开文件
-    ifstream input(filename.c_str(), ios::binary);
+    // Step 2: Use SHA512 as the AES key
+    SecByteBlock aesKey(shaKey, SHA512::DIGESTSIZE);
 
-    if (input) {
-        // 获取文件大小
-        input.seekg(0, ios::end);
-        streamsize size = input.tellg();
-        input.seekg(0, ios::beg);
-
-        // 分配缓冲区
-        encryptedData.resize(static_cast<size_t>(size));
-
-        // 读取文件数据
-        if (input.read(&encryptedData[0], size)) {
-            cout << "读取加密文件成功" << endl;
-        }
-        else {
-            cerr << "读取加密文件失败" << endl;
-        }
-    }
-    else {
-        cerr << "打开加密文件失败" << endl;
-    }
-
-    return encryptedData;
-}
-
-// 将数据写入加密文件中
-bool writeEncryptedFile(const string& filename, const string& encryptedData) {
-    // 打开文件
-    ofstream output(filename.c_str(), ios::binary);
-
-    if (output) {
-        // 写入数据
-        if (output.write(&encryptedData[0], encryptedData.size())) {
-            cout << "写入加密文件成功" << endl;
-            return true;
-        }
-        else {
-            cerr << "写入加密文件失败" << endl;
-        }
-    }
-    else {
-        cerr << "打开加密文件失败" << endl;
-    }
-
-    return false;
-}
-
-// 使用AES算法加密数据
-string encrypt(const string& plaintext, const string& key) {
+    // Step 3: Encrypt content with AES
     string ciphertext;
+    try
+    {
+        CBC_Mode<AES>::Encryption encryption;
+        encryption.SetKeyWithIV(aesKey, aesKey.size(), aesKey);
 
-    // 设定AES加密算法
-    CryptoPP::AES::Encryption aesEncryption((unsigned char*)key.c_str(), CryptoPP::AES::DEFAULT_KEYLENGTH);
+        StringSource(content, true,
+            new StreamTransformationFilter(encryption,
+                new StringSink(ciphertext)
+            )
+        );
+    }
+    catch (const CryptoPP::Exception& e)
+    {
+        cerr << "AES encryption error: " << e.what() << endl;
+        return;
+    }
 
-    // 设定加密模式：CBC模式
-    CryptoPP::CBC_Mode_ExternalCipher::Encryption cbcEncryption(aesEncryption, (unsigned char*)key.c_str());
+    // Step 4: Write encrypted content to the specified file
+    ofstream outputFile(file_path, ios::binary);
+    if (!outputFile)
+    {
+        cerr << "Unable to open file: " << file_path << endl;
+        return;
+    }
+    outputFile.write(ciphertext.c_str(), ciphertext.size());
+    outputFile.close();
 
-    // 使用过滤器进行加密
-    CryptoPP::StringSource(plaintext, true,
-        new CryptoPP::StreamTransformationFilter(cbcEncryption,
-            new CryptoPP::StringSink(ciphertext), CryptoPP::StreamTransformationFilter::NO_PADDING)
-    );
-
-    return ciphertext;
-}
-
-// 使用AES算法解密数据
-string decrypt(const string& ciphertext, const string& key) {
-    string plaintext;
-
-    // 设定AES解密算法
-    CryptoPP::AES::Decryption aesDecryption((unsigned char*)key.c_str(), CryptoPP::AES::DEFAULT_KEYLENGTH);
-
-    // 设定解密模式：CBC模式
-    CryptoPP::CBC_Mode_ExternalCipher::Decryption cbcDecryption(aesDecryption, (unsigned char*)key.c_str());
-
-    // 使用过滤器进行解密
-    CryptoPP::StringSource(ciphertext, true,
-        new CryptoPP::StreamTransformationFilter(cbcDecryption,
-            new CryptoPP::StringSink(plaintext), CryptoPP::StreamTransformationFilter::NO_PADDING)
-    );
-
-    return plaintext;
+    cout << "Encryption and write to file completed." << endl;
 }
