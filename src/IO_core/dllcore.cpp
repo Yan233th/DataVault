@@ -18,55 +18,6 @@
 using namespace std;
 using namespace CryptoPP;
 
-bool EncryptAndWriteToFile (const char* keyStr, const char* contentStr, const char* filePathStr)
-{
-    // Convert C-style strings to C++ std::string using assignment
-    string key = keyStr;
-    string filePath = filePathStr;
-    string content = contentStr;
-
-    // Step 1: Generate SHA256 from the provided key
-    SHA256 sha;
-    byte shaKey[SHA256::DIGESTSIZE];
-    sha.Update (reinterpret_cast<const byte*>(key.data ()), key.size ());
-    sha.Final (shaKey);
-
-    // Step 2: Use SHA256 as the AES key
-    SecByteBlock aesKey (shaKey, SHA256::DIGESTSIZE);
-
-    // Step 3: Encrypt content with AES
-    string ciphertext;
-    try
-    {
-        CBC_Mode<AES>::Encryption encryption;
-        encryption.SetKeyWithIV (aesKey, aesKey.size (), aesKey);
-
-        StringSource (content, true,
-            new StreamTransformationFilter (encryption,
-                new StringSink (ciphertext)
-            )
-        );
-    }
-    catch (const Exception& e)
-    {
-        cerr << "AES encryption error: " << e.what () << endl;
-        return false;
-    }
-
-    // Step 4: Write encrypted content to the specified file
-    ofstream outputFile (filePath, ios::binary);
-    if (!outputFile)
-    {
-        cerr << "Unable to open file: " << filePath << endl;
-        return false;
-    }
-    outputFile.write (ciphertext.c_str (), ciphertext.size ());
-    outputFile.close ();
-
-    cout << "Encryption and write to file completed." << endl;
-    return true;
-}
-
 bool DecryptAndWriteToFile (const char* keyStr, const char* encryptedFilePathStr, const char* decryptedFilePathStr)
 {
     // Convert C-style strings to C++ std::string using assignment
@@ -128,5 +79,54 @@ bool DecryptAndWriteToFile (const char* keyStr, const char* encryptedFilePathStr
     decryptedFile.close ();
 
     cout << "Decryption and write to file completed." << endl;
+    return true;
+}
+
+bool EncryptAndWriteToFile (const char* keyStr, const char* contentStr, const char* filePathStr)
+{
+    // Convert C-style strings to C++ std::string using assignment
+    string key = keyStr;
+    string filePath = filePathStr;
+    string content = contentStr;
+
+    // Step 1: Generate SHA256 from the provided key
+    SHA256 sha;
+    byte shaKey[SHA256::DIGESTSIZE];
+    sha.Update (reinterpret_cast<const byte*>(key.data ()), key.size ());
+    sha.Final (shaKey);
+
+    // Step 2: Use SHA256 as the AES key
+    SecByteBlock aesKey (shaKey, SHA256::DIGESTSIZE);
+
+    // Step 3: Encrypt content with AES
+    string ciphertext;
+    try
+    {
+        CBC_Mode<AES>::Encryption encryption;
+        encryption.SetKeyWithIV (aesKey, aesKey.size (), aesKey);
+
+        StringSource (content, true,
+            new StreamTransformationFilter (encryption,
+                new StringSink (ciphertext)
+            )
+        );
+    }
+    catch (const Exception& e)
+    {
+        cerr << "AES encryption error: " << e.what () << endl;
+        return false;
+    }
+
+    // Step 4: Write encrypted content to the specified file
+    ofstream outputFile (filePath, ios::binary);
+    if (!outputFile)
+    {
+        cerr << "Unable to open file: " << filePath << endl;
+        return false;
+    }
+    outputFile.write (ciphertext.c_str (), ciphertext.size ());
+    outputFile.close ();
+
+    cout << "Encryption and write to file completed." << endl;
     return true;
 }
