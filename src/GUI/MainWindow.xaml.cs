@@ -30,35 +30,76 @@ namespace GUI
         }
 
         [DllImport ("IO_core.dll")]
-        static extern bool DecryptAndWriteToFile (string keyStr, string encryptedFilePathStr, string decryptedFilePathStr);
+        static extern bool DecryptTextAndWriteToFile (string keyStr, string encryptedFilePathStr, string decryptedFilePathStr);
         [DllImport ("IO_core.dll")]
-        static extern bool EncryptAndWriteToFile (string keyStr, string contentStr, string filePathStr);
+        static extern bool EncryptTextAndWriteToFile (string keyStr, string contentStr, string filePathStr);
+        [DllImport ("IO_core.dll")]
+        static extern bool EncryptFileAndWriteToFile (string keyStr, string sourcePathStr, string targetPathStr);
+        [DllImport ("IO_core.dll")]
+        static extern bool DecryptFileAndWriteToFile (string keyStr, string targetPathStr, string sourcePathStr);
 
-        private void ChooseFileButton_Click (object sender, RoutedEventArgs e)
+        private void ChooseTargetFileButton_Click (object sender, RoutedEventArgs e)
         {
             OpenFileDialog openFileDialog = new OpenFileDialog ();
-            openFileDialog.Title = "请选择文件";
+            openFileDialog.Title = "Select Target file";
             if (openFileDialog.ShowDialog () == true)
             {
                 string selectedFilePath = openFileDialog.FileName;
-                FilePathBox.Text = selectedFilePath;
+                TargetFilePathBox.Text = selectedFilePath;
             }
         }
 
-        private void DecryptButton_Click (object sender, RoutedEventArgs e)
+        private void ChooseSourceFileButton_Click (object sender, RoutedEventArgs e)
         {
-            // 弹出输入密钥的对话框
-            string key = Microsoft.VisualBasic.Interaction.InputBox ("Enter Key", "Key Input", "");
+            OpenFileDialog openFileDialog = new OpenFileDialog ();
+            openFileDialog.Title = "Select Source file";
+            if (openFileDialog.ShowDialog () == true)
+            {
+                string selectedFilePath = openFileDialog.FileName;
+                SourceFilePathBox.Text = selectedFilePath;
+            }
+        }
 
-            // 检查密钥是否为空
+        private void EncryptTextButton_Click (object sender, RoutedEventArgs e)
+        {
+            string key = PasswordBox.Password;
+
             if (string.IsNullOrWhiteSpace (key))
             {
                 MessageBox.Show ("Key cannot be empty.");
                 return;
             }
 
-            // 检查文件是否存在
-            if (!File.Exists (FilePathBox.Text))
+            string? directoryPath = System.IO.Path.GetDirectoryName (TargetFilePathBox.Text);
+            if (!Directory.Exists (directoryPath))
+            {
+                MessageBox.Show ("The directory where the file located does not exist or is invalid.");
+                return;
+            }
+
+            bool status = EncryptTextAndWriteToFile (key, ContentBox.Text, TargetFilePathBox.Text);
+
+            if (status)
+            {
+                MessageBox.Show ("Encryption succeeded.");
+            }
+            else
+            {
+                MessageBox.Show ("Encryption failed.");
+            }
+        }
+
+        private void DecryptTextButton_Click (object sender, RoutedEventArgs e)
+        {
+            string key = PasswordBox.Password;
+
+            if (string.IsNullOrWhiteSpace (key))
+            {
+                MessageBox.Show ("Key cannot be empty.");
+                return;
+            }
+
+            if (!File.Exists (TargetFilePathBox.Text))
             {
                 MessageBox.Show ("Encrypted file does not exist.");
                 return;
@@ -66,18 +107,12 @@ namespace GUI
 
             string tempFilePath = System.IO.Path.Combine (AppDomain.CurrentDomain.BaseDirectory, "temp");
 
-            // 调用 C++ 函数来解密和写入文件
-            bool success = DecryptAndWriteToFile (key, FilePathBox.Text, tempFilePath);
+            bool status = DecryptTextAndWriteToFile (key, TargetFilePathBox.Text, tempFilePath);
 
-            if (success)
+            if (status)
             {
-                // 读取解密后的文件内容
                 string decryptedContent = File.ReadAllText (tempFilePath);
-
-                // 显示解密后的内容
                 ContentBox.Text = decryptedContent;
-
-                // 删除临时文件
                 File.Delete (tempFilePath);
             }
             else
@@ -86,29 +121,32 @@ namespace GUI
             }
         }
 
-        private void EncryptButton_Click (object sender, RoutedEventArgs e)
+        private void EncryptFileButton_Click (object sender, RoutedEventArgs e)
         {
-            // 弹出输入密钥的对话框
-            string key = Microsoft.VisualBasic.Interaction.InputBox ("Enter Key", "Key Input", "");
+            string key = PasswordBox.Password;
 
-            // 检查密钥是否为空
             if (string.IsNullOrWhiteSpace (key))
             {
                 MessageBox.Show ("Key cannot be empty.");
                 return;
             }
 
-            // 检查文件所在的目录是否存在
-            string? directoryPath = System.IO.Path.GetDirectoryName (FilePathBox.Text);
-            if (!Directory.Exists (directoryPath))
+            if (!File.Exists (SourceFilePathBox.Text))
             {
-                MessageBox.Show ("The directory where the file located does not exist or is invalid.");
+                MessageBox.Show ("Source file does not exist.");
                 return;
             }
 
-            bool success = EncryptAndWriteToFile (key, ContentBox.Text, FilePathBox.Text);
+            string? directoryPath = System.IO.Path.GetDirectoryName (TargetFilePathBox.Text);
+            if (!Directory.Exists (directoryPath))
+            {
+                MessageBox.Show ("The directory where the target file located does not exist or is invalid.");
+                return;
+            }
 
-            if (success)
+            bool status = EncryptFileAndWriteToFile (key, SourceFilePathBox.Text, TargetFilePathBox.Text);
+
+            if (status)
             {
                 MessageBox.Show ("Encryption succeeded.");
             }
@@ -116,6 +154,42 @@ namespace GUI
             {
                 MessageBox.Show ("Encryption failed.");
             }
+        }
+
+        private void DecryptFileButton_Click (object sender, RoutedEventArgs e)
+        {
+            string key = PasswordBox.Password;
+
+            if (string.IsNullOrWhiteSpace (key))
+            {
+                MessageBox.Show ("Key cannot be empty.");
+                return;
+            }
+
+            if (!File.Exists (TargetFilePathBox.Text))
+            {
+                MessageBox.Show ("Target file does not exist.");
+                return;
+            }
+
+            string? directoryPath = System.IO.Path.GetDirectoryName (SourceFilePathBox.Text);
+            if (!Directory.Exists (directoryPath))
+            {
+                MessageBox.Show ("The directory where the source file located does not exist or is invalid.");
+                return;
+            }
+
+            bool status = DecryptFileAndWriteToFile (key, TargetFilePathBox.Text, SourceFilePathBox.Text);
+
+            if (status)
+            {
+                MessageBox.Show ("Decryption succeeded.");
+            }
+            else
+            {
+                MessageBox.Show ("Decryption failed.");
+            }
+
         }
     }
 }

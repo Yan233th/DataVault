@@ -5,14 +5,20 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:GUI"
         mc:Ignorable="d"
-        Title="TextVault" Height="450" Width="750" Icon="/icon.png">
+        Title="TextVault" Height="500" Width="750" Icon="/icon.png" ResizeMode="CanMinimize">
     <Grid>
-        <TextBox x:Name="ContentBox" Margin="15,48,15,15" TextWrapping="Wrap" BorderBrush="#FFBF7FFF" Background="#07000000" FontSize="16"/>
-        <TextBlock HorizontalAlignment="Center" TextWrapping="Wrap" Text="Content" VerticalAlignment="Center" Foreground="#3F000000" FontSize="72" FontWeight="Bold" IsHitTestVisible="False"/>
-        <Button x:Name="ChooseFileButton" Content="选择文件" FontSize="16" Height="28" Width="80" VerticalAlignment="Top" HorizontalAlignment="Left" Margin="15,10,0,0" Click="ChooseFileButton_Click"/>
-        <TextBox x:Name="FilePathBox" Margin="110,10,301,0" VerticalAlignment="Top" Height="28" Background="#07000000" VerticalContentAlignment="Center"/>
-        <Button x:Name="EncryptButton" Content="加密并写入文件" FontSize="16" Height="28" Width="128" VerticalAlignment="Top" HorizontalAlignment="Right" Margin="0,10,15,0" Click="EncryptButton_Click"/>
-        <Button x:Name="DecryptButton" Content="读取并解密文件" FontSize="16" Height="28" Width="128" VerticalAlignment="Top" HorizontalAlignment="Right" Margin="0,10,158,0" Click="DecryptButton_Click"/>
+        <TextBox x:Name="ContentBox" Margin="15,86,15,15" TextWrapping="Wrap" BorderBrush="#FFBF7FFF" FontSize="16"/>
+        <TextBlock HorizontalAlignment="Center" TextWrapping="Wrap" Text="Content" VerticalAlignment="Center" Foreground="#3F000000" FontSize="72" FontWeight="Bold" IsHitTestVisible="False" Margin="0,50,0,0"/>
+        <TextBlock Margin="15,13,0,0" TextWrapping="Wrap" Text="Password" HorizontalAlignment="Left" VerticalAlignment="Top" FontSize="16"/>
+        <PasswordBox x:Name="PasswordBox" Margin="96,10,375,0" Height="27" VerticalAlignment="Top" VerticalContentAlignment="Center"/>
+        <Button x:Name="EncryptTextButton" Content="文本: 加密" FontSize="16" Height="28" Width="80" VerticalAlignment="Top" HorizontalAlignment="Right" Margin="0,10,285,0" Click="EncryptTextButton_Click"/>
+        <Button x:Name="DecryptTextButton" Content="文本: 解密" FontSize="16" Height="28" Width="80" VerticalAlignment="Top" HorizontalAlignment="Right" Margin="0,10,195,0" Click="DecryptTextButton_Click"/>
+        <Button x:Name="EncryptFileButton" Content="文件: 加密" FontSize="16" Height="28" Width="80" VerticalAlignment="Top" HorizontalAlignment="Right" Margin="0,10,105,0" Click="EncryptFileButton_Click"/>
+        <Button x:Name="DecryptFileButton" Content="文件: 解密" FontSize="16" Height="28" Width="80" VerticalAlignment="Top" HorizontalAlignment="Right" Margin="0,10,15,0" Click="DecryptFileButton_Click"/>
+        <Button x:Name="ChooseTargetFileButton" Content="选择目标加密文件" FontSize="16" Height="28" Width="140" VerticalAlignment="Top" HorizontalAlignment="Left" Margin="15,48,0,0" Click="ChooseTargetFileButton_Click"/>
+        <TextBox x:Name="TargetFilePathBox" Margin="165,48,345,0" VerticalAlignment="Top" Height="28" VerticalContentAlignment="Center"/>
+        <Button x:Name="ChooseSourceFileButton" Content="选择源文件" FontSize="16" Height="28" Width="90" VerticalAlignment="Top" HorizontalAlignment="Right" Click="ChooseSourceFileButton_Click" Margin="0,48,245,0"/>
+        <TextBox x:Name="SourceFilePathBox" VerticalAlignment="Top" Height="28" VerticalContentAlignment="Center" HorizontalAlignment="Right" Margin="0,48,15,0" Width="220"/>
 
     </Grid>
 </Window>
