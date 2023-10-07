@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:GUI"
         mc:Ignorable="d"
-        Title="TextVault" Height="500" Width="750" Icon="/icon.png" ResizeMode="CanMinimize">
+        Title="DataVault" Height="500" Width="750" Icon="/icon.png" ResizeMode="CanMinimize">
     <Grid>
         <TextBox x:Name="ContentBox" Margin="15,86,15,15" TextWrapping="Wrap" BorderBrush="#FFBF7FFF" FontSize="16"/>
         <TextBlock HorizontalAlignment="Center" TextWrapping="Wrap" Text="Content" VerticalAlignment="Center" Foreground="#3F000000" FontSize="72" FontWeight="Bold" IsHitTestVisible="False" Margin="0,50,0,0"/>
